@@ -68,6 +68,10 @@ for case in cases:
         img = imgarr[n,:,:] 
         kid = mask1arr[n,:,:]
         tum = mask2arr[n,:,:]
+        
+        if kid.shape[0] != 512 or kid.shape[1] != 512 or tum.shape[0] != 512 or tum.shape[1] != 512 or img.shape[0] != 512 or img.shape[1] != 512: 
+            # image has unexpected shape, skip it (case 160 with shape 512x796)
+            continue
 
         img = np.multiply(img, 1.0/255.0, dtype=np.float32)
 
