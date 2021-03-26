@@ -25,7 +25,9 @@ outPath = os.path.join(dirname, outFolder)
 os.makedirs(outPath, exist_ok=True)
 
 # load cases
-cases = os.listdir(dataPath)[:imgcnt]
+cases = os.listdir(dataPath)
+cases.sort()
+cases = cases[:imgcnt]
 
 for case in cases:
     imagePath = os.path.join(dataPath, case, 'imaging.nii.gz')
@@ -44,8 +46,8 @@ for case in cases:
     # separate masks
     stopwatch = time.time()
 
-    mask1arr = mskarr           # Reference
-    mask2arr = np.copy(mskarr)  # Deep copy
+    mask1arr = mskarr             # Reference
+    mask2arr = np.copy(mskarr)    # Deep copy
 
     mask1arr[mask1arr != 1] = 0
     mask1arr[mask1arr == 1] = 255

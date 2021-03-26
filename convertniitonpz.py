@@ -30,7 +30,9 @@ ykid = {} # masks kidney
 ytum = {} # masks tumor
 
 # load cases
-cases = os.listdir(dataPath)[:imgcnt] # 209 scans which are anotated
+cases = os.listdir(dataPath) # 209 scans which are anotated
+cases.sort()
+cases = cases[:imgcnt]
 
 for case in cases:
     imagePath = os.path.join(dataPath, case, 'imaging.nii.gz')
@@ -80,7 +82,7 @@ for case in cases:
 
 stopwatch = time.time()
 
-print(f'Saving was started. This operation can take a while, be patient please...')
+print(f'Saving was started. This operation can take a while (cca 30 minutes), be patient please...')
 
 xPath = os.path.join(outPath, 'x.npz')
 ykidPath = os.path.join(outPath, 'ykid.npz')
