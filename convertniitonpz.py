@@ -88,15 +88,15 @@ xPath = os.path.join(outPath, 'x.npz')
 ykidPath = os.path.join(outPath, 'ykid.npz')
 ytumPath = os.path.join(outPath, 'ytum.npz')
 
-np.savez_compressed(ykidPath, ykid)
+np.savez_compressed(ykidPath, **ykid)
 del ykid
 gc.collect()
 
-np.savez_compressed(ytumPath, ytum)
+np.savez_compressed(ytumPath, **ytum)
 del ytum
 gc.collect()
 
-np.savez_compressed(xPath, x)
+np.savez_compressed(xPath, **x)
 
 print(f'Array with {len(x)} images was saved in {time.time() - stopwatch} seconds')
 print(f'Done!')
