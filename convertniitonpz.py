@@ -77,9 +77,9 @@ for case in cases:
 
         # store in dictionary if there is kid or tum
         if np.max(kid) == 1 or np.max(tum) == 1:
-            x[f'{case}_{n}'] = img.reshape(1, imgarr.shape[1], imgarr.shape[2])
-            ykid[f'{case}_{n}'] = kid.reshape(1, mask1arr.shape[1], mask1arr.shape[2])
-            ytum[f'{case}_{n}'] = tum.reshape(1, mask2arr.shape[1], mask2arr.shape[2])
+            x[f'{case}_{n}'] = img.reshape(1, imgarr.shape[1], imgarr.shape[2]).astype(np.float32)
+            ykid[f'{case}_{n}'] = kid.reshape(1, mask1arr.shape[1], mask1arr.shape[2]).astype(np.float32)
+            ytum[f'{case}_{n}'] = tum.reshape(1, mask2arr.shape[1], mask2arr.shape[2]).astype(np.float32)
             pass
         pass
     pass
