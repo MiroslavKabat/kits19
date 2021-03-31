@@ -29,21 +29,21 @@ timestamp = str(now.year).zfill(4) + str(now.month).zfill(2) + str(now.day).zfil
 DIRNAME = os.path.dirname(__file__)
 
 DATASETNAME = "npz"
-OUTPUTDIRECTORY = f"models\\{timestamp}"
+OUTPUTDIRECTORY = f"models/{timestamp}"
 
 PATHTOFILENAMES = os.path.join(DIRNAME, DATASETNAME, "keys.txt")    # Images names
 PATHTOIMAGES = os.path.join(DIRNAME, DATASETNAME, "x.npz")          # Images
 PATHTOMASKS = os.path.join(DIRNAME, DATASETNAME, "ykid.npz")        # kidney .. ykid.npz | tumor .. ytum.npz 
 
-MODELFILEPATH = os.path.join(OUTPUTDIRECTORY, "model.h5")           # trained model is saved in to this file h5
-ONNXMODELFILEPATH = os.path.join(OUTPUTDIRECTORY, "model.onnx")     # trained model is saved in to this file onnx
-OUTPUTLOGPATH = os.path.join(OUTPUTDIRECTORY, "train.csv")
-TENSORBOARDPATH = os.path.join(OUTPUTDIRECTORY, "./logs")
-CHECKPOINTPATH = os.path.join(OUTPUTDIRECTORY, "model.{epoch:02d}-{val_loss:.5f}.h5")
-BESTCHECKPOINTPATH = os.path.join(OUTPUTDIRECTORY, "model_best.h5")
+MODELFILEPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "model.h5")           # trained model is saved in to this file h5
+ONNXMODELFILEPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "model.onnx")     # trained model is saved in to this file onnx
+OUTPUTLOGPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "train.csv")
+TENSORBOARDPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "./logs")
+CHECKPOINTPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "model.{epoch:02d}-{val_loss:.5f}.h5")
+BESTCHECKPOINTPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "model_best.h5")
 
 # data loading
-COUNTOFIMAGESFROMDATASET = 16220 # 16220    # you can use large number for all images like 999999
+COUNTOFIMAGESFROMDATASET = 16220            # you can use large number for all images like 999999
 CHERRYPICKING = True                        # Pick only valid images from dataset
 CHERRYMIN = 0.01                            # used only if CHERRYPICKING is True
 CHERRYMAX = 1.00                            # used only if CHERRYPICKING is True
