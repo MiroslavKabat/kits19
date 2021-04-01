@@ -21,6 +21,8 @@ from keras import backend as K
 from datetime import datetime
 from tqdm import tqdm
 
+from lossfunctions import *
+
 # stamp
 now = datetime.now()
 timestamp = str(now.year).zfill(4) + str(now.month).zfill(2) + str(now.day).zfill(2) + str(now.hour).zfill(2) + str(now.minute).zfill(2)
@@ -50,7 +52,7 @@ CHERRYMAX = 1.00                            # used only if CHERRYPICKING is True
 
 # optimizer - Hyperparameter
 LEARNINGRATE = 0.001
-RHO = 0.98
+RHO = 0.95
 EPSILON = 1e-7
 DECAY = 0
 
@@ -179,44 +181,14 @@ c18 = Conv2D(64, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_ini
 c19 = Conv2D(OUTPUTCHANNELS, (1,1), (1,1), PADDING, activation="sigmoid")(c18)
 
 model = Model(inputs=p0, outputs=c19, name="u-net")
-
-model.summary()
+# model.summary() # info about model
 
 # create optimizer
 optimizer = keras.optimizers.Adadelta(learning_rate=LEARNINGRATE, rho=RHO, epsilon=EPSILON, name="Adadelta", decay=DECAY )
 
-# define custom loss function
-# IOU = Jaccard
-def IOU(y_true, y_pred):
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    return (intersection + 1.0) / (K.sum(y_true_f) + K.sum(y_pred_f) - intersection + 1.0)
-
-def IOU_loss(y_true, y_pred):
-    return 1.0 - IOU(y_true, y_pred)
-
-# DICE = similar to Jaccard(IOU)
-smooth = 1. # Used to prevent denominator 0
-def DICE(y_true, y_pred):
-    y_true_f = K.flatten(y_true) # y_true stretch to one dimension
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    return (2. * intersection + smooth) / (K.sum(y_true_f * y_true_f) + K.sum(y_pred_f * y_pred_f) + smooth)
-
-def DICE_loss(y_true, y_pred):
-    return 1.0 - DICE(y_true, y_pred)
-
-# DICE + IOU
-def DICE_IOU(y_true, y_pred):
-    return DICE(y_true, y_pred) + IOU(y_true, y_pred)
-
-def DICE_IOU_loss(y_true, y_pred):
-    return 1.0 - DICE_IOU(y_true, y_pred)
-
 # compile model with loss function
 # model.compile(optimizer=optimizer, loss="binary_crossentropy", metrics="accuracy")
-model.compile(optimizer=optimizer, loss=[IOU_loss], metrics=[IOU])
+model.compile(optimizer=optimizer, loss=[DICE_IOU_loss], metrics=[DICE_IOU])
 
 # callbacks
 callbacks = [
