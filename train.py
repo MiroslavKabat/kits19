@@ -10,18 +10,20 @@ import keras2onnx
 from keras import callbacks
 from keras.optimizers import Optimizer
 from keras.models import Model
-from keras.layers import Input, Cropping2D, UpSampling2D, Concatenate, Dropout
-from keras.layers.convolutional import Conv2D, Conv2DTranspose
-from keras.layers.pooling import MaxPooling2D
-from keras.layers.merge import concatenate
 from keras.optimizers import Adam, Adadelta
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras import backend as K
+
+import segmentation_models as sm
 
 from datetime import datetime
 from tqdm import tqdm
 
 from lossfunctions import *
+from unetmodels import *
+
+# setup PC
+keras.backend.set_image_data_format('channels_last')
 
 # stamp
 now = datetime.now()
@@ -45,13 +47,17 @@ CHECKPOINTPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "model.{epoch:02d}-{val_
 BESTCHECKPOINTPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "model_best.h5")
 
 # data loading
-COUNTOFIMAGESFROMDATASET = 1000 # 16220            # you can use large number for all images like 999999
-CHERRYPICKING = True                        # Pick only valid images from dataset
-CHERRYMIN = 0.01                            # used only if CHERRYPICKING is True
-CHERRYMAX = 1.00                            # used only if CHERRYPICKING is True
+startImage = 0
+cntOfImagesFromDataset = 1000 # 16220            # you can use large number for all images like 999999
+endImage = startImage + cntOfImagesFromDataset
+
+CHERRYPICKING = True                             # Pick only valid images from dataset
+CHERRYMIN = 0.01                                 # used only if CHERRYPICKING is True
+CHERRYMAX = 1.00                                 # used only if CHERRYPICKING is True
+FAKE3CHANNELS = True
 
 # optimizer - Hyperparameter
-LEARNINGRATE = 0.001
+LEARNINGRATE = 0.0001
 RHO = 0.95
 EPSILON = 1e-7
 DECAY = 0
@@ -79,7 +85,7 @@ print(f'Loading data ...')
 images = np.load(PATHTOIMAGES, None, True)
 masks = np.load(PATHTOMASKS, None, True)
 keys = images.files
-keys = keys[:COUNTOFIMAGESFROMDATASET] # take all -> files[:] or take 10 for example -> files[:10]
+keys = keys[startImage:endImage] # take all -> files[:] or take 10 for example -> files[:10]
 
 # select data in to single array
 x = [] # images
@@ -97,6 +103,12 @@ for file in tqdm(keys):
 
         if sumratio < CHERRYMIN or sumratio > CHERRYMAX:
             continue
+
+    if FAKE3CHANNELS:
+        xarr = xarr.reshape(1, INPUTHEIGHT, INPUTHEIGHT, 1)
+        xarr = np.concatenate((xarr, xarr, xarr),axis=3)
+        yarr = yarr.reshape(1, INPUTHEIGHT, INPUTWIDTH, 1)
+        pass
 
     x.append(xarr)
     y.append(yarr)
@@ -120,75 +132,21 @@ print(f'Data loaded in {time.time() - stopwatch} seconds')
 # build model
 stopwatch = time.time()
 print(f'Building model ..')
-PADDING = "same" # "valid"
-ACTIVATION = "relu"
-INITIALIZER = "he_normal"
-KERNELSIZE = (3,3)
-POOLSIZE = (2,2)
-UPSIZE = (2,2)
-STRIDES = (1,1)
 
-## input
-p0 = Input(shape=(INPUTHEIGHT, INPUTWIDTH, INPUTCHANNELS), name="input")
+# model = sm.Unet()
+model = sm.Unet('resnet34')
+# model = CustomUNet() # our custom UNet
 
-## compressing down
-c1 = Conv2D(64, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(p0)
-c2 = Conv2D(64, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c1)
-p1 = MaxPooling2D(POOLSIZE, POOLSIZE, PADDING)(c2)
-
-c3 = Conv2D(128, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(p1)
-c4 = Conv2D(128, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c3)
-p2 = MaxPooling2D(POOLSIZE, POOLSIZE, PADDING)(c4)
-
-c5 = Conv2D(256, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(p2)
-c6 = Conv2D(256, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c5)
-p3 = MaxPooling2D(POOLSIZE, POOLSIZE, PADDING)(c6)
-
-c7 = Conv2D(512, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(p3)
-c8 = Conv2D(512, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c7)
-p4 = MaxPooling2D(POOLSIZE, POOLSIZE, PADDING)(c8)
-
-## bottleneck
-c9 = Conv2D(1024, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(p4)
-c10 = Conv2D(1024, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c9)
-
-## expanding up
-up1 = UpSampling2D(UPSIZE)(c10)
-crop1 = Cropping2D((0,0), None)(c8)
-conc1 = concatenate([up1, crop1], axis=3)
-c11 = Conv2D(512, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(conc1)
-c12 = Conv2D(512, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c11)
-
-up2 = UpSampling2D(UPSIZE)(c12)
-crop2 = Cropping2D((0,0), None)(c6)
-conc2 = concatenate([up2, crop2], axis=3)
-c13 = Conv2D(256, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(conc2)
-c14 = Conv2D(256, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c13)
-
-up3 = UpSampling2D(UPSIZE)(c14)
-crop3 = Cropping2D((0,0), None)(c4)
-conc3 = concatenate([up3, crop3], axis=3)
-c15 = Conv2D(128, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(conc3)
-c16 = Conv2D(128, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c15)
-
-up4 = UpSampling2D(UPSIZE)(c16)
-crop4 = Cropping2D((0,0), None)(c2)
-conc4 = concatenate([up4, crop4], axis=3)
-c17 = Conv2D(64, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(conc4)
-c18 = Conv2D(64, KERNELSIZE, STRIDES, PADDING, activation=ACTIVATION, kernel_initializer=INITIALIZER)(c17)
-
-## output
-c19 = Conv2D(OUTPUTCHANNELS, (1,1), (1,1), PADDING, activation="sigmoid")(c18)
-
-model = Model(inputs=p0, outputs=c19, name="u-net")
-# model.summary() # info about model
+model.summary() # info about model
 
 # create optimizer
 optimizer = keras.optimizers.Adadelta(learning_rate=LEARNINGRATE, rho=RHO, epsilon=EPSILON, name="Adadelta", decay=DECAY )
+# optimizer = keras.optimizers.Adam(learning_rate=LEARNINGRATE)
 
 # compile model with loss function
 # model.compile(optimizer=optimizer, loss="binary_crossentropy", metrics="accuracy")
 model.compile(optimizer=optimizer, loss=[DICE_IOU_loss], metrics=[DICE_IOU])
+# model.compile(optimizer=optimizer, loss=sm.losses.bce_jaccard_loss, metrics=[sm.metrics.iou_score])
 
 # callbacks
 callbacks = [
@@ -211,8 +169,8 @@ model.fit(
     epochs=EPOCHS,
     verbose=VERBOSE,
     callbacks=callbacks,
-    validation_split=VALIDATIONSPLIT,
-    validation_data=None,  #(X, Y)
+    validation_split=0.2, # VALIDATIONSPLIT,
+    validation_data=None,  # (X, Y)
     shuffle=False,
     class_weight=None,
     sample_weight=None,

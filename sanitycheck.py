@@ -18,6 +18,10 @@ dataFolder = 'data'
 outFolder = 'png'
 imgcnt = 210
 
+startCase = 123
+caseCnt = 1
+endCase = startCase + caseCnt
+
 dataPath = os.path.join(dirname, dataFolder)
 outPath = os.path.join(dirname, outFolder)
 
@@ -29,7 +33,7 @@ cases = os.listdir(dataPath)
 cases.sort()
 cases = cases[:imgcnt]
 
-for case in cases:
+for case in cases[startCase:endCase]:
     imagePath = os.path.join(dataPath, case, 'imaging.nii.gz')
     masksPath = os.path.join(dataPath, case, 'segmentation.nii.gz')
 
