@@ -50,30 +50,30 @@ for case in cases[startCase:endCase]:
     # separate masks
     stopwatch = time.time()
 
-    mask1arr = mskarr             # Reference
-    mask2arr = np.copy(mskarr)    # Deep copy
+    maskKidArr = mskarr             # Reference
+    maskTumArr = np.copy(mskarr)    # Deep copy
 
-    mask1arr[mask1arr != 1] = 0
-    mask1arr[mask1arr == 1] = 255
+    maskKidArr[maskKidArr != 1] = 0
+    maskKidArr[maskKidArr == 1] = 255
 
-    mask2arr[mask2arr != 2] = 0
-    mask2arr[mask2arr == 2] = 255
+    maskTumArr[maskTumArr != 2] = 0
+    maskTumArr[maskTumArr == 2] = 255
     
     print(f'case {case} masks were separated in {time.time() - stopwatch} seconds')
-    print(f'mask1arr has minimum value: {np.min(mask1arr)} and maximum value: {np.max(mask1arr)}')
-    print(f'mask2arr has minimum value: {np.min(mask2arr)} and maximum value: {np.max(mask2arr)}')
+    print(f'mask1arr has minimum value: {np.min(maskKidArr)} and maximum value: {np.max(maskKidArr)}')
+    print(f'mask2arr has minimum value: {np.min(maskTumArr)} and maximum value: {np.max(maskTumArr)}')
 
     stopwatch = time.time()
     for n in range(imgarr.shape[0]):
         # image convert
         image = Image.fromarray(imgarr[n,:,:])
-        mask1 = Image.fromarray(mask1arr[n,:,:])
-        mask2 = Image.fromarray(mask2arr[n,:,:])
+        kidmask = Image.fromarray(maskKidArr[n,:,:])
+        tummask = Image.fromarray(maskTumArr[n,:,:])
         
         # image save
-        image.save(os.path.join(outPath, f"{case}_{n}.png"))        # raw image
-        mask1.save(os.path.join(outPath, f"{case}_{n}_mask1.png"))  # kidney
-        mask2.save(os.path.join(outPath, f"{case}_{n}_mask2.png"))  # tumor
+        image.save(os.path.join(outPath, f"{case}_{n}.png"))             # raw image
+        kidmask.save(os.path.join(outPath, f"{case}_{n}_mask_kid.png"))  # kidney
+        tummask.save(os.path.join(outPath, f"{case}_{n}_mask_tum.png"))  # tumor
         pass
     print(f'case {case} with {imgarr.shape[0]} images was saved in {time.time() - stopwatch} seconds')
     pass

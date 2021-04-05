@@ -20,7 +20,6 @@ from datetime import datetime
 from tqdm import tqdm
 
 from lossfunctions import *
-from unetmodels import *
 
 # setup PC
 keras.backend.set_image_data_format('channels_last')
@@ -48,7 +47,7 @@ BESTCHECKPOINTPATH = os.path.join(DIRNAME, OUTPUTDIRECTORY, "model_best.h5")
 
 # data loading
 startImage = 0
-cntOfImagesFromDataset = 1000 # 16220            # you can use large number for all images like 999999
+cntOfImagesFromDataset = 10000 # 16220            # you can use large number for all images like 999999
 endImage = startImage + cntOfImagesFromDataset
 
 CHERRYPICKING = True                             # Pick only valid images from dataset
@@ -57,12 +56,14 @@ CHERRYMAX = 1.00                                 # used only if CHERRYPICKING is
 FAKE3CHANNELS = True
 
 # optimizer - Hyperparameter
-LEARNINGRATE = 0.0001
+LEARNINGRATE = 0.001
 RHO = 0.95
 EPSILON = 1e-7
 DECAY = 0
 
 # U-NET architecture
+ARCHITECTURE = 'resnet34'
+
 INPUTCHANNELS = 1
 INPUTHEIGHT = 512
 INPUTWIDTH = 512
@@ -71,9 +72,9 @@ OUTPUTCHANNELS = 1
 
 # training constants
 CALLBACKPERIODCHECKPOINT = 10
-BATCHSIZE = 3
+BATCHSIZE = 4
 EPOCHS = 100
-VERBOSE = 1    # 0 .. silent | 1 .. every batch | 2 .. every epoch
+VERBOSE = 2    # 0 .. silent | 1 .. every batch | 2 .. every epoch
 VALIDATIONSPLIT = 0.2
 VALIDATIONFREQUENCY = 1
 MAXQUEUQSIZE = 10
@@ -115,6 +116,7 @@ for file in tqdm(keys):
     pass
 
 # concatenate selected images and masks
+print(f"Concatenation ...")
 X = np.concatenate(x)
 Y = np.concatenate(y)
 
@@ -133,9 +135,7 @@ print(f'Data loaded in {time.time() - stopwatch} seconds')
 stopwatch = time.time()
 print(f'Building model ..')
 
-# model = sm.Unet()
-model = sm.Unet('resnet34')
-# model = CustomUNet() # our custom UNet
+model = sm.Unet(ARCHITECTURE)
 
 model.summary() # info about model
 
@@ -169,9 +169,9 @@ model.fit(
     epochs=EPOCHS,
     verbose=VERBOSE,
     callbacks=callbacks,
-    validation_split=0.2, # VALIDATIONSPLIT,
+    validation_split=0.2,  # VALIDATIONSPLIT,
     validation_data=None,  # (X, Y)
-    shuffle=False,
+    shuffle=True,
     class_weight=None,
     sample_weight=None,
     initial_epoch=0,
@@ -186,9 +186,5 @@ model.fit(
 
 # save trained model .h5
 model.save(filepath=MODELFILEPATH)
-
-# # convert to onnx model (only used for deploy / you can use h5 to valid model)
-# onnx_model = keras2onnx.convert_keras(model, "", "", int(7))
-# onnx.save_model(onnx_model, ONNXMODELFILEPATH)
 
 print("Done!")
