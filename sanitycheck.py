@@ -1,8 +1,5 @@
 # Export .nii.gz to .png for sanity check
 
-# prerequisities:
-# downloaded get_imaging.py
-
 import os
 import time
 import numpy as np
@@ -16,7 +13,7 @@ dirname = os.path.dirname(__file__)
 # constants
 dataFolder = 'data'
 outFolder = 'png'
-imgcnt = 210
+imgCnt = 210
 
 startCase = 123
 caseCnt = 1
@@ -31,7 +28,7 @@ os.makedirs(outPath, exist_ok=True)
 # load cases
 cases = os.listdir(dataPath)
 cases.sort()
-cases = cases[:imgcnt]
+cases = cases[:imgCnt]
 
 for case in cases[startCase:endCase]:
     imagePath = os.path.join(dataPath, case, 'imaging.nii.gz')
@@ -75,7 +72,7 @@ for case in cases[startCase:endCase]:
         kidmask.save(os.path.join(outPath, f"{case}_{n}_mask_kid.png"))  # kidney
         tummask.save(os.path.join(outPath, f"{case}_{n}_mask_tum.png"))  # tumor
         pass
-    print(f'case {case} with {imgarr.shape[0]} images was saved in {time.time() - stopwatch} seconds')
+    print(f'case {case} with {imgarr.shape[0]} images were saved in {time.time() - stopwatch} seconds')
     pass
 
 print('Done!')

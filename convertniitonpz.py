@@ -1,9 +1,5 @@
 # Convert .nii.gz to .npz
 
-# prerequisities:
-# minimum RAM 64 GB
-# downloaded get_imaging.py
-
 import os
 import gc
 import time
@@ -16,7 +12,7 @@ dirname = os.path.dirname(__file__)
 # constants
 dataFolder = 'data'
 outFolder = 'npz'
-imgcnt = 210
+imgCnt = 210
 
 dataPath = os.path.join(dirname, dataFolder)
 outPath = os.path.join(dirname, outFolder)
@@ -32,7 +28,7 @@ ytum = {} # masks tumor
 # load cases
 cases = os.listdir(dataPath) # 209 scans which are anotated
 cases.sort()
-cases = cases[:imgcnt]
+cases = cases[:imgCnt]
 
 for case in cases:
     imagePath = os.path.join(dataPath, case, 'imaging.nii.gz')
