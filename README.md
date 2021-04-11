@@ -20,7 +20,7 @@ Pull Request welcome
 ## Contact 🤙🏻
 If you need help with your project, my work helps you or you have any ideas how to improve my code, let me know about it!
 
-😁 www.MiroslavKabat.com
+👦🏻 www.MiroslavKabat.com
 
 ✉️ hello@miroslavkabat.com
 
