@@ -13,10 +13,9 @@ dirname = os.path.dirname(__file__)
 # constants
 dataFolder = 'data'
 outFolder = 'png'
-imgCnt = 210
 
-startCase = 123
-caseCnt = 1
+startCase = 0
+caseCnt = 210
 endCase = startCase + caseCnt
 
 dataPath = os.path.join(dirname, dataFolder)
@@ -28,7 +27,7 @@ os.makedirs(outPath, exist_ok=True)
 # load cases
 cases = os.listdir(dataPath)
 cases.sort()
-cases = cases[:imgCnt]
+cases = cases[:]
 
 for case in cases[startCase:endCase]:
     imagePath = os.path.join(dataPath, case, 'imaging.nii.gz')
