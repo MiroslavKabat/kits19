@@ -103,7 +103,7 @@ for file in tqdm(keys):
             continue
 
     if fake3channels:
-        xarr = xarr.reshape((1, inputHeight, inputHeight, 1))
+        xarr = xarr.reshape((1, inputHeight, inputWidth, 1))
         xarr = np.concatenate((xarr, xarr, xarr),axis=3)
         yarr = yarr.reshape((1, inputHeight, inputWidth, 1))
         pass
